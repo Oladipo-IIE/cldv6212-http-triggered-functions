@@ -27,7 +27,7 @@ public class UserRoutes
     //public name of function. Will be used in the URL if Route not specified
     [Function("CreateUser")]
     //method can be called whatever you want
-    public async Task<IActionResult> CreateUser([HttpTrigger(AuthorizationLevel.Function, "post", Route = "users")] HttpRequest req)
+    public async Task<IActionResult> CreateUser([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users")] HttpRequest req)
     {
         var response = new ResponseBase();
 
@@ -85,7 +85,7 @@ public class UserRoutes
 
 
     [Function("GetUser")]
-    public async Task<IActionResult> GetUserAsync([HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{id}")] HttpRequest req, string id)
+    public async Task<IActionResult> GetUserAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/{id}")] HttpRequest req, string id)
     {
         var response = new ResponseBase();
 
@@ -123,7 +123,7 @@ public class UserRoutes
     }
 
     [Function("GetAllUsers")]
-    public async Task<IActionResult> GetAllUsersAsync([HttpTrigger(AuthorizationLevel.Function, "get", Route = "users")] HttpRequest req)
+    public async Task<IActionResult> GetAllUsersAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users")] HttpRequest req)
     {
         var response = new ResponseBase();
 

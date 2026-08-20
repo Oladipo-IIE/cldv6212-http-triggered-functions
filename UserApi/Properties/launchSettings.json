@@ -2,13 +2,13 @@
   "profiles": {
     "UserApi": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7272"
+      "commandLineArgs": "--port 7063"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
       "containerRunArguments": "--init",
-      "httpPort": 33427,
+      "httpPort": 34103,
       "useSSL": false
     }
   }

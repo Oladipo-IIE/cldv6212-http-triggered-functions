@@ -1,0 +1,29 @@
+services:
+
+  # Azure Storage Emulator
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+
+    ports:
+      - "10000:10000"   # Blob Storage
+      - "10001:10001"   # Queue Storage
+      - "10002:10002"   # Table Storage
+
+
+  # Azure Functions application
+  user-api:
+    build:
+      context: .
+      dockerfile: UserApi/Dockerfile
+
+    container_name: user-api
+
+    ports:
+      - "8080:80"
+
+    environment:
+      AzureWebJobsStorage: "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;AccountName=devstoreaccount1;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+
+    depends_on:
+      - azurite
