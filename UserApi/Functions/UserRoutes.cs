@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using UserApi.Models;
+using UserApi.Models.Dtos;
 
-namespace UserApi;
+namespace UserApi.Functions;
 
 public class UserRoutes
 {
@@ -64,8 +65,9 @@ public class UserRoutes
                 await tableClient.AddEntityAsync(user);
 
                 response.Message = "User saved";
+                response.Data = UserDto.ToDto(user);
 
-                var httpResponse = new OkObjectResult(response);
+                var httpResponse = new CreatedResult(user.Id, response);
                 return httpResponse;
             }
         }
@@ -99,7 +101,7 @@ public class UserRoutes
             {
                 var user = result.Value;
                 response.Message = "User found";
-                response.Data = GetOnlyPublicUserObjectFields(user);
+                response.Data = UserDto.ToDto(user);
 
                 return new OkObjectResult(response);
             }
@@ -135,7 +137,7 @@ public class UserRoutes
 
 
             //cast the objects we receive to remove all fields we do not want to expose
-            var publicUserInformation = users.Select(x => GetOnlyPublicUserObjectFields(x)).ToList();
+            var publicUserInformation = users.Select(x => UserDto.ToDto(x)).ToList();
 
             //create a response object with a count field, which has a count of objects in the table
             var data = new { Count = publicUserInformation.Count, Users = publicUserInformation };
@@ -161,6 +163,7 @@ public class UserRoutes
 
     //this method cast our user object into an anonymous object, leaving out fields that we would not like to expose
     //such as the password, partitionkey and rowkey.You could also omplement this as a class (see DTO pattern)
+    //--replaced usage with UserDto
     private object GetOnlyPublicUserObjectFields(User user)
     {
         return new
