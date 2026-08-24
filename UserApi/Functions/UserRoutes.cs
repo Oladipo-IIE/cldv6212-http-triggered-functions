@@ -54,12 +54,21 @@ public class UserRoutes
             }
             else
             {
+                //get table client
+                var tableClient = _tableServiceClient.GetTableClient("User");
+                var result = await tableClient.GetEntityIfExistsAsync<User>("User", user.Id);
+
+                if (result.HasValue)
+                {
+                    response.Success = false;
+                    response.Message = "User with given Id already exists";
+
+                    return new BadRequestObjectResult(response);
+                }
+
                 //set partitionKey and RowKey of object
                 user.PartitionKey = "User";
                 user.RowKey = user.Id;
-
-                //get table client
-                var tableClient = _tableServiceClient.GetTableClient("User");
 
                 //add the new user to your table
                 await tableClient.AddEntityAsync(user);

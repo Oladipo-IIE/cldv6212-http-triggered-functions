@@ -10,10 +10,12 @@ namespace UserApi.Models.Dtos
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
 
-        public static UserDto ToDto(User user)
+        public static UserDto? ToDto(User user)
         {
+            if (user == null)
+                return null;
+
             var dto = new UserDto();
             
             dto.Id = user.Id;
