@@ -82,13 +82,25 @@ public class NoteRoutes
     }
 
     [Function("AddAttachment")]
-    public async Task<IActionResult> AddAttachmentAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "notes/{notesid}/attachments")] HttpRequest req, string notesid)
+    public async Task<IActionResult> AddAttachmentAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "notes/{noteId}/attachments")] HttpRequest req, string noteId)
     {
         _logger.LogInformation("Calling AddAttachment");
         var response = new ResponseBase();
 
         try
         {
+            //check if note exists
+            var notesTableClient = _tableServiceClient.GetTableClient("Note");
+            var note = await notesTableClient.GetEntityIfExistsAsync<Note>("Note", noteId);
+
+            if(!note.HasValue)
+            {
+                response.Success = false;
+                response.Message = "Invalid note id";
+                return new BadRequestObjectResult(response);
+            }
+
+            //check if req has form fields
             if (!req.HasFormContentType)
             {
                 response.Success = false;
@@ -96,10 +108,10 @@ public class NoteRoutes
                 return new BadRequestObjectResult(response);
             }
 
-            // 2. Read the form data asynchronously
+            // Read the form data asynchronously
             var formCollection = await req.ReadFormAsync();
 
-            // 3. Extract the file by its form field name (e.g., "file")
+            // Extract the file by its form field name (e.g., "file")
             var file = formCollection.Files["file"];
 
             if (file == null || file.Length == 0)
@@ -109,7 +121,7 @@ public class NoteRoutes
                 return new BadRequestObjectResult(response);
             }
 
-            // 4. Access file properties and read data into a stream
+            // Access file properties and read data into a stream
             string fileName = file.FileName;
 
             // Validation
@@ -149,7 +161,7 @@ public class NoteRoutes
                 FileName = fileName,
                 Url = fileUrl,
                 ContentType = contentType,
-                PartitionKey = notesid,
+                PartitionKey = noteId,
                 RowKey = id
             };
 
@@ -175,6 +187,36 @@ public class NoteRoutes
 
             return StatusCode500();
         }
+    }
+
+    [Function("GetAllNotes")]
+    public async Task<IActionResult> GetAllNotesAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "notes")] HttpRequest req)
+    {
+
+    }
+
+    [Function("GetNote")]
+    public async Task<IActionResult> GetNoteAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "notes/{noteId}")] HttpRequest req, string noteId)
+    {
+
+    }
+
+    [Function("ModifyNote")]
+    public async Task<IActionResult> ModifyNoteAsync([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "notes/{noteId}")] HttpRequest req, string noteId)
+    {
+
+    }
+
+    [Function("DeleteNote")]
+    public async Task<IActionResult> DeleteNoteAsync([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "notes/{noteId}")] HttpRequest req, string noteId)
+    {
+
+    }
+
+    [Function("DeleteAttachment")]
+    public async Task<IActionResult> DeleteAttachmentAsync([HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "notes/{noteId}/attachments/{attachmentId}")] HttpRequest req, string noteId, string attachmentId)
+    {
+
     }
 
     private async Task<string?> SaveFileToBlobStorageAsync(IFormFile file)
