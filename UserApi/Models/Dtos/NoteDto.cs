@@ -15,6 +15,10 @@ namespace UserApi.Models.Dtos
 
         public DateTime UpdatedAt { get; set; }
 
+        public int AttachmentCount { get; set; } = 0;
+
+        public IEnumerable<AttachmentDto> Attachments { get; set; } = Enumerable.Empty<AttachmentDto>();
+
         public static NoteDto? ToDto(Note note)
         {
             if (note == null)

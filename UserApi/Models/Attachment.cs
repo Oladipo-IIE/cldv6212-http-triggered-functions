@@ -9,6 +9,7 @@ namespace UserApi.Models
         public string FileName { get; set; }
         public string ContentType { get; set; }
         public string Url { get; set; }
+        public string BlobName { get; set; }
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
