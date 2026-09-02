@@ -6,6 +6,6 @@ namespace UserApi.Services
 {
     internal class AuthService
     {
-        //making some changes to authservice to make a conflict
+        //making  a conflict
     }
 }
