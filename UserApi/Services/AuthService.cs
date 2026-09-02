@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UserApi.Services
 {
-    internal class AuthService
+    internal class Authe
     {
     }
 }
