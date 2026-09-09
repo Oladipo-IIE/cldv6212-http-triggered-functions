@@ -1,0 +1,733 @@
+{
+  "info": {
+    "_postman_id": "0414af67-104f-47b3-80e5-195718749b3d",
+    "name": "Notes API - Automated Tests",
+    "description": "Postman collection for testing the Notes REST API specification. Run the requests in order using the Collection Runner. The collection stores noteId and attachmentId automatically from successful create responses. Before running the attachment upload request, select a local file for the form-data field named 'file'.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56655448"
+  },
+  "item": [
+    {
+      "name": "01 - Get all notes",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('Response is JSON', function () { pm.expect(pm.response.headers.get('Content-Type') || '').to.include('application/json'); });\npm.test('Response body is an array', function () { \n    const jsonData = pm.response.json();\n    pm.expect(jsonData.data.notes).to.be.an('array'); });\npm.test('Each returned note has the required fields', function () {\n    const jsonData = pm.response.json();\n    jsonData.data.notes.forEach(function (note) {\n    pm.expect(note).to.have.property('id');\n    pm.expect(note).to.have.property('title');\n    pm.expect(note).to.have.property('content');\n    pm.expect(note).to.have.property('createdAt');\n    pm.expect(note).to.have.property('updatedAt');\n    if (note.attachments !== undefined) pm.expect(note.attachments).to.be.an('array');\n  });\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes"
+          ]
+        },
+        "description": "Retrieves all notes. An empty data set must be returned as an empty JSON array."
+      },
+      "response": []
+    },
+    {
+      "name": "02 - Create note - valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });\npm.test('Response contains the created note', function () {\n  const jsonData = pm.response.json();\n  const note = jsonData.data;\n  pm.expect(note).to.have.property('id');\n  pm.expect(note.id).to.be.a('string').and.not.empty;\n  pm.expect(note.title).to.eql('Postman Shopping List');\n  pm.expect(note.content).to.eql('Milk, bread and coffee');\n  pm.expect(note).to.have.property('createdAt');\n  pm.expect(note).to.have.property('updatedAt');\n  pm.expect(Date.parse(note.createdAt)).not.to.be.NaN;\n  pm.expect(Date.parse(note.updatedAt)).not.to.be.NaN;\n  pm.collectionVariables.set('noteId', note.id);\n  pm.collectionVariables.set('createdAt', note.createdAt);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman Shopping List\",\n  \"content\": \"Milk, bread and coffee\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 - Create note - invalid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid note returns 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"content\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 - Get created note",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('Correct note is returned', function () {\n  const jsonData = pm.response.json();\n  const note = jsonData.data;\n  pm.expect(note.id).to.eql(pm.collectionVariables.get('noteId'));\n  pm.expect(note.title).to.eql('Postman Shopping List');\n  pm.expect(note.content).to.eql('Milk, bread and coffee');\n  pm.expect(note).to.have.property('createdAt');\n  pm.expect(note).to.have.property('updatedAt');\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 - Get nonexistent note",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing note returns 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 - Update note - valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('Updated note values are returned', function () {\n  const jsonData = pm.response.json();\n  pm.expect(jsonData.data.id).to.eql(pm.collectionVariables.get('noteId'));\n  pm.expect(jsonData.data.title).to.eql('Updated Postman Shopping List');\n  pm.expect(jsonData.data.content).to.eql('Milk, bread, coffee and eggs');\n});\npm.test('updatedAt is changed and createdAt is preserved', function () {\n  const jsonData = pm.response.json();\n    const note = jsonData.data;\n  const oldCreatedAt = pm.collectionVariables.get('createdAt');\n  if (note.createdAt !== undefined) pm.expect(note.createdAt).to.eql(oldCreatedAt);\n  pm.expect(note).to.have.property('updatedAt');\n  pm.expect(Date.parse(note.updatedAt)).not.to.be.NaN;\n  if (oldCreatedAt) pm.expect(Date.parse(note.updatedAt)).to.be.at.least(Date.parse(oldCreatedAt));\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Updated Postman Shopping List\",\n  \"content\": \"Milk, bread, coffee and eggs\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 - Update note - invalid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid update returns 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"content\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 - Update nonexistent note",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Updating missing note returns 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Does not exist\",\n  \"content\": \"This should not be created\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 - Upload attachment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201', function () { pm.response.to.have.status(200); });\npm.test('Attachment metadata is returned', function () {\n  const jsonData = pm.response.json(); \n  const attachment = jsonData.data;\n  pm.expect(attachment).to.have.property('id');\n  pm.expect(attachment.id).to.be.a('string').and.not.empty;\n  pm.expect(attachment).to.have.property('fileName');\n  pm.expect(attachment).to.have.property('contentType');\n  pm.expect(attachment).to.have.property('url');\n  pm.expect(attachment.url).to.be.a('string').and.not.empty;\n  pm.collectionVariables.set('attachmentId', attachment.id);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": [
+                "postman-cloud:///1f1aac49-9554-4410-ad05-226760555a6c"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}/attachments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}",
+            "attachments"
+          ]
+        },
+        "description": "Select a local test file for the form-data field named 'file' before running this request. Do not manually set Content-Type; Postman will add the multipart boundary."
+      },
+      "response": []
+    },
+    {
+      "name": "10 - Get note with attachment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('Created attachment is associated with the note', function () {\n  const jsonData = pm.response.json();\n    const note = jsonData.data;\n  pm.expect(note).to.have.property('attachments');\n  pm.expect(note.attachments).to.be.an('array');\n  const attachmentId = pm.collectionVariables.get('attachmentId');\n  const found = note.attachments.some(function (a) { return a.id === attachmentId; });\n  pm.expect(found).to.eql(true);\n  if (note.attachmentCount !== undefined) pm.expect(note.attachmentCount).to.eql(note.attachments.length);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11 - Get all notes includes attachment data",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('Created note is present with its attachment', function () {\n  const jsonData = pm.response.json();\n  const notes = jsonData.data.notes;\n  const noteId = pm.collectionVariables.get('noteId');\n  const attachmentId = pm.collectionVariables.get('attachmentId');\n  const note = notes.find(function (n) { return n.id === noteId; });\n  pm.expect(note, 'Created note should be present').to.exist;\n  pm.expect(note.attachments).to.be.an('array');\n  pm.expect(note.attachments.some(function (a) { return a.id === attachmentId; })).to.eql(true);\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12 - Upload attachment to nonexistent note",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Uploading to a missing note returns 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": [
+                "postman-cloud:///1f1aac49-9554-4410-ad05-226760555a6c"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/00000000-0000-0000-0000-000000000000/attachments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "00000000-0000-0000-0000-000000000000",
+            "attachments"
+          ]
+        },
+        "description": "Uses the same selected-file requirement as the successful upload test."
+      },
+      "response": []
+    },
+    {
+      "name": "13 - Delete attachment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('success field is true', function () { \n    const jsonData = pm.response.json();\n    pm.expect(jsonData.success).to.eql(true); \n    });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}/attachments/{{attachmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}",
+            "attachments",
+            "{{attachmentId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14 - Verify attachment removed",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('Deleted attachment is no longer associated with note', function () {\n  const jsonData = pm.response.json();\n  const note = jsonData.data;\n  const attachmentId = pm.collectionVariables.get('attachmentId');\n  if (note.attachments !== undefined) {\n    pm.expect(note.attachments.some(function (a) { return a.id === attachmentId; })).to.eql(false);\n    if (note.attachmentCount !== undefined) pm.expect(note.attachmentCount).to.eql(note.attachments.length);\n  }\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "15 - Delete missing attachment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Missing attachment returns 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}/attachments/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}",
+            "attachments",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "16 - Delete note",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });\npm.test('success field is true', function () { \n    const jsonData = pm.response.json();\n    pm.expect(jsonData.success).to.eql(true); \n    });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "17 - Verify deleted note returns 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Deleted note returns 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "18 - Delete nonexistent note",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Deleting missing note returns 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/notes/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "notes",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:7071"
+    },
+    {
+      "key": "noteId",
+      "value": ""
+    },
+    {
+      "key": "attachmentId",
+      "value": ""
+    },
+    {
+      "key": "createdAt",
+      "value": ""
+    }
+  ]
+}

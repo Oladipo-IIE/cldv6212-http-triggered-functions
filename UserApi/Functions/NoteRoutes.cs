@@ -60,14 +60,15 @@ public class NoteRoutes
                 return new BadRequestObjectResult(response);
             }
 
+            var id = Guid.NewGuid().ToString();
             //set partitionKey and RowKey of object
             var note = new Note()
             {
-                Id = noteDto.Id,
+                Id = id,
                 Title = noteDto.Title,
                 Content = noteDto.Content,
                 PartitionKey = _noteTableName,
-                RowKey = Guid.NewGuid().ToString(),
+                RowKey = id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };            
@@ -486,6 +487,10 @@ public class NoteRoutes
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
             await containerClient.CreateIfNotExistsAsync();
+
+            //you need this line to ensure you can download the blobs you upload
+            await containerClient.SetAccessPolicyAsync(Azure.Storage.Blobs.Models.PublicAccessType.Blob);
+
             var blobClient = containerClient.GetBlobClient(blobName);
             using (var stream = file.OpenReadStream())
             {
