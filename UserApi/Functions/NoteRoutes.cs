@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using System.Net;
 using UserApi.Models;
 using UserApi.Models.Dtos;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -32,6 +35,26 @@ public class NoteRoutes
         _tableServiceClient.CreateTableIfNotExists(_noteTableName);
         _tableServiceClient.CreateTableIfNotExists(_attachmentTableName);
     }
+
+    [OpenApiOperation(
+    operationId: "CreateNote",
+    tags: new[] { "Notes" },
+    Summary = "Create a new note")]
+
+    [OpenApiRequestBody(
+    contentType: "application/json",
+    bodyType: typeof(NoteDto),
+    Required = true)]
+
+    [OpenApiResponseWithBody(
+    statusCode: HttpStatusCode.Created,
+    contentType: "application/json",
+    bodyType: typeof(ResponseBase))]
+
+    [OpenApiResponseWithBody(
+    statusCode: HttpStatusCode.BadRequest,
+    contentType: "application/json",
+    bodyType: typeof(ResponseBase))]
 
     [Function("CreateNote")]
     public async Task<IActionResult> CreateNoteAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "notes")] HttpRequest req)
@@ -235,6 +258,28 @@ public class NoteRoutes
             return StatusCode500();
         }
     }
+
+    [OpenApiOperation(
+    operationId: "GetNote",
+    tags: new[] { "Notes" },
+    Summary = "Retrieve a note by ID")]
+
+    [OpenApiParameter(
+    name: "noteId",
+    In = ParameterLocation.Path,
+    Required = true,
+    Type = typeof(string),
+    Description = "The unique identifier of the note.")]
+
+    [OpenApiResponseWithBody(
+    statusCode: HttpStatusCode.OK,
+    contentType: "application/json",
+    bodyType: typeof(ResponseBase))]
+
+    [OpenApiResponseWithBody(
+    statusCode: HttpStatusCode.NotFound,
+    contentType: "application/json",
+    bodyType: typeof(ResponseBase))]
 
     [Function("GetNote")]
     public async Task<IActionResult> GetNoteAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "notes/{noteId}")] HttpRequest req, string noteId)
